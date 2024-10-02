@@ -1,0 +1,10 @@
+# Ignorar carpetas de entornos virtuales
+bot-ultimate-python/
+.bot-ultimate-python/
+
+# Archivos de Python
+__pycache__/
+*.pyc
+
+# Otros
+*.log
