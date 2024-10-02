@@ -1,6 +1,8 @@
 # Ignorar carpetas de entornos virtuales
 bot-ultimate-python/
 .bot-ultimate-python/
+venv/
+.venv/
 
 # Archivos de Python
 __pycache__/
