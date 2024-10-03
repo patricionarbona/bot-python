@@ -1,1 +1,10 @@
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+pip install opencv-python
+Install Microsoft Visual C++ Redistributable
+pip uninstall torch
+pip install torch torchvision torchaudio
+pip uninstall opencv-python opencv-python-headless
+pip install opencv-python
+
+pip install pyautogui
+pip install easyocr
