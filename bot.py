@@ -82,6 +82,10 @@ def ocr_processing_loop(roi_original, reader):
         #Sin operacion
         if fase == 0:
             print('SO')
+            if res[1] == 'B1':
+                fase = 1
+            if res[1] == '51':
+                fase = 3
 
         #Long Abierto
         if fase == 1:
