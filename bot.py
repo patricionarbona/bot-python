@@ -42,10 +42,52 @@ def open_second_window(value):
     # Ejecutar el bucle de la segunda ventana
     second_window.mainloop()
 
+# Fase 0: Sin Operaciones
+def fase_sin_operaciones(resultado):
+    global fase
+    for res in resultado:
+        if res[1] == 'B1':
+            print('Transición a Long Abierto')
+            fase = 1
+        elif res[1] == '51':
+            print('Transición a Short Abierto')
+            fase = 3
+
+# Fase 1: Long Abierto
+def fase_long_abierto(resultado):
+    global fase, b1
+    print('Long Abierto - Capturando pantalla')
+    pyautogui.screenshot(f'./detecciones/b1{b1}.png')
+    b1 += 1
+    fase = 2  # Espera a la siguiente fase (esperar confirmación)
+
+# Fase 2: Espera confirmación Long Cerrado
+def fase_espera_confirmacion_long(resultado):
+    global fase
+    for res in resultado:
+        if res[1] == '51':  # Si se reconoce "51", cerramos Long
+            print('Confirmación - Long Cerrado')
+            fase = 3  # Cambio a fase Short
+
+# Fase 3: Short Abierto
+def fase_short_abierto(resultado):
+    global fase, s1
+    print('Short Abierto - Capturando pantalla')
+    pyautogui.screenshot(f'./detecciones/s1{s1}.png')
+    s1 += 1
+    fase = 4  # Espera a la siguiente fase (esperar confirmación)
+
+# Fase 4: Espera confirmación Short Cerrado
+def fase_espera_confirmacion_short(resultado):
+    global fase
+    for res in resultado:
+        if res[1] == 'B1':  # Si se reconoce "B1", abrimos de nuevo Long
+            print('Confirmación - Short Cerrado')
+            fase = 1  # Cambio a fase Long
+
 def ocr_processing_loop(roi_original, reader):
-    global stop_requested
+    global stop_requested, fase
     while not stop_requested:  # El bucle se ejecuta mientras stop_requested sea False
-        print(f'el valor de : {fase}')
         now = datetime.datetime.now()
 
         # Realiza la captura de pantalla
@@ -78,58 +120,19 @@ def ocr_processing_loop(roi_original, reader):
 
         resultado = reader.readtext(img_ocr)
 
-
-        #Sin operacion
+        # Control de Fases
         if fase == 0:
-            print('SO')
-            if res[1] == 'B1':
-                fase = 1
-            if res[1] == '51':
-                fase = 3
+            fase_sin_operaciones(resultado)
+        elif fase == 1:
+            fase_long_abierto(resultado)
+        elif fase == 2:
+            fase_espera_confirmacion_long(resultado)
+        elif fase == 3:
+            fase_short_abierto(resultado)
+        elif fase == 4:
+            fase_espera_confirmacion_short(resultado)
 
-        #Long Abierto
-        if fase == 1:
-            print('LA')
-            pyautogui.screenshot(f'./detecciones/b1{b1}.png')
-            b1 += 1
-            fase = 2
-
-        if fase == 2:
-            print('wait')
-            if res[1] == '51':
-                print('LC')
-                fase = 3
-
-        #Short Abierto
-        if fase == 3:
-            print('SA')
-            pyautogui.screenshot(f'./detecciones/s1{s1}.png')
-            s1 += 1
-            fase = 4
-
-        if fase == 4:
-            print('wait')
-            if res[1] == '51':
-                print('LC')
-                fase = 1
-            print('SC')    
-
-
-
-
-
-
-        # # Imprimir los resultados reconocidos con la hora actual
-        # for res in resultado:
-        #     print(f'Texto reconocido: {res[1]} a las {now.time()}')
-        #     if res[1] == '51':
-        #         pyautogui.screenshot(f'./detecciones/s1{s1}.png')
-        #         s1 += 1
-        #     if res[1] == 'B1':
-        #         pyautogui.screenshot(f'./detecciones/b1{b1}.png')
-        #         b1 += 1
-
-        print(f'{now.time()}')
+        print(f'Fase actual: {fase} a las {now.time()}')
         time.sleep(5)  # Pausa de 5 segundos antes de la siguiente iteración
 
     cv2.destroyAllWindows()
