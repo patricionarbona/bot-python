@@ -13,6 +13,7 @@ COLOR_MASKS = [
 ]
 b1 = 0
 s1 = 0
+fase = 0
 stop_requested = False  # Variable global para detener el bucle
 
 def stop_program():
@@ -20,6 +21,8 @@ def stop_program():
     stop_requested = True  # Cuando se pulse STOP, cambia a True
 
 def open_second_window(value):
+    global fase
+    fase = value
     global stop_requested
     stop_requested = False  # Reiniciar el valor cuando se abre la ventana
 
@@ -42,6 +45,7 @@ def open_second_window(value):
 def ocr_processing_loop(roi_original, reader):
     global stop_requested
     while not stop_requested:  # El bucle se ejecuta mientras stop_requested sea False
+        print(f'el valor de : {fase}')
         now = datetime.datetime.now()
 
         # Realiza la captura de pantalla
@@ -73,6 +77,28 @@ def ocr_processing_loop(roi_original, reader):
         img_ocr = cv2.equalizeHist(img_ocr)
 
         resultado = reader.readtext(img_ocr)
+
+
+        #Sin operacion
+        if fase == 0:
+            print('SO')
+
+        #Long Abierto
+        if fase == 1:
+            print('LA')
+        if fase == 2:
+            print('LC')
+
+        #Short Abierto
+        if fase == 3:
+            print('SA')
+        if fase == 4:
+            print('SC')    
+
+
+
+
+
 
         # Imprimir los resultados reconocidos con la hora actual
         for res in resultado:
