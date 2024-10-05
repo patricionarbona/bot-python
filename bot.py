@@ -4,6 +4,8 @@ import time
 import numpy as np
 import easyocr
 import datetime
+import tkinter as tk
+import threading
 
 COLOR_MASKS = [
     [0, 0, 143],
@@ -11,82 +13,125 @@ COLOR_MASKS = [
 ]
 b1 = 0
 s1 = 0
+stop_requested = False  # Variable global para detener el bucle
+
+def stop_program():
+    global stop_requested
+    stop_requested = True  # Cuando se pulse STOP, cambia a True
+
+def open_second_window(value):
+    global stop_requested
+    stop_requested = False  # Reiniciar el valor cuando se abre la ventana
+
+    # Cerrar la ventana principal
+    root.destroy()
+
+    # Crear la segunda ventana
+    second_window = tk.Tk()
+    second_window.title("Segunda ventana")
+    
+    print(f"Valor seleccionado: {value}")
+    
+    # Crear el botón STOP en la segunda ventana
+    stop_button = tk.Button(second_window, text="STOP", command=stop_program)
+    stop_button.pack(pady=20)
+
+    # Ejecutar el bucle de la segunda ventana
+    second_window.mainloop()
+
+def ocr_processing_loop(roi_original, reader):
+    global stop_requested
+    while not stop_requested:  # El bucle se ejecuta mientras stop_requested sea False
+        now = datetime.datetime.now()
+
+        # Realiza la captura de pantalla
+        pyautogui.screenshot('ah.png')
+        img = cv2.imread('ah.png')
+
+        # Recorta la imagen original utilizando las coordenadas ajustadas
+        img_crop = img[roi_original[1]:roi_original[1]+roi_original[3], roi_original[0]:roi_original[0]+roi_original[2]]
+
+        ########################
+        # Filtrado de color 
+        imagen_hsv = cv2.cvtColor(img_crop, cv2.COLOR_BGR2HSV)
+        color_bajo = np.array(COLOR_MASKS[0])
+        color_alto = np.array(COLOR_MASKS[1])
+
+        # Crear una máscara basada en los valores HSV
+        mascara = cv2.inRange(imagen_hsv, color_bajo, color_alto)
+
+        # Aplicar la máscara a la imagen original
+        img_filtrada = cv2.bitwise_and(img_crop, img_crop, mask=mascara)
+
+        ###################
+        # OCR con EasyOCR
+
+        img_gris = cv2.cvtColor(img_filtrada, cv2.COLOR_BGR2GRAY)
+
+        img_ocr = cv2.resize(img_gris, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
+        img_ocr = cv2.GaussianBlur(img_ocr, (3, 3), 0)
+        img_ocr = cv2.equalizeHist(img_ocr)
+
+        resultado = reader.readtext(img_ocr)
+
+        # Imprimir los resultados reconocidos con la hora actual
+        for res in resultado:
+            print(f'Texto reconocido: {res[1]} a las {now.time()}')
+            if res[1] == '51':
+                pyautogui.screenshot(f'./detecciones/s1{s1}.png')
+                s1 += 1
+            if res[1] == 'B1':
+                pyautogui.screenshot(f'./detecciones/b1{b1}.png')
+                b1 += 1
+
+        print(f'{now.time()}')
+        time.sleep(5)  # Pausa de 5 segundos antes de la siguiente iteración
+
+    cv2.destroyAllWindows()
 
 # Crear el lector de EasyOCR
-reader = easyocr.Reader(['en'])  # Puedes agregar más idiomas si es necesario
+reader = easyocr.Reader(['en']) 
 
-# Espera 2 segundos para dar tiempo al usuario a preparar la captura de pantalla
 time.sleep(2)
 
-# Realiza la captura de pantalla
+# Realiza la captura de pantalla inicial
 pyautogui.screenshot('ah.png')
 img = cv2.imread('ah.png')
 
-# Redimensionar la imagen si es demasiado grande (ajusta el tamaño según lo necesites)
-width = 1500  # Cambia este valor según lo que prefieras
-height = int(img.shape[0] * (width / img.shape[1]))  # Mantener proporción
+# Redimensionar la imagen si es demasiado grande
+width = 1500 
+height = int(img.shape[0] * (width / img.shape[1]))
 img_resized = cv2.resize(img, (width, height))
 
 # Selección de ROI en la imagen redimensionada
 roi = cv2.selectROI('Selecciona el ROI', img_resized)
 cv2.destroyWindow('Selecciona el ROI')
 
-# Ajusta las coordenadas del ROI en función del redimensionamiento
 scale_x = img.shape[1] / width
 scale_y = img.shape[0] / height
 
 roi_original = (int(roi[0] * scale_x), int(roi[1] * scale_y), int(roi[2] * scale_x), int(roi[3] * scale_y))
 
-while True:
-    now = datetime.datetime.now()  # Actualizar la hora en cada iteración
+# Iniciar el hilo para el OCR
+ocr_thread = threading.Thread(target=ocr_processing_loop, args=(roi_original, reader))
+ocr_thread.start()
 
-    # Recorta la imagen original utilizando las coordenadas ajustadas
-    img_crop = img[roi_original[1]:roi_original[1]+roi_original[3], roi_original[0]:roi_original[0]+roi_original[2]]
+# Crear la ventana principal con botones
+root = tk.Tk()
+root.title("Ventana principal")
 
-    ########################
-    ## Filtrado de color 
-    imagen_hsv = cv2.cvtColor(img_crop, cv2.COLOR_BGR2HSV)
-    color_bajo = np.array(COLOR_MASKS[0])
-    color_alto = np.array(COLOR_MASKS[1])
+# Crear los tres botones en la ventana principal, cada uno con un valor distinto
+button1 = tk.Button(root, text="Sin operaciones", command=lambda: open_second_window(0))
+button1.pack(pady=10)
 
-    # Crear una máscara basada en los valores HSV
-    mascara = cv2.inRange(imagen_hsv, color_bajo, color_alto)
+button2 = tk.Button(root, text="Long Abierta", command=lambda: open_second_window(1))
+button2.pack(pady=10)
 
-    # Aplicar la máscara a la imagen original
-    img_filtrada = cv2.bitwise_and(img_crop, img_crop, mask=mascara)
+button3 = tk.Button(root, text="Short Abierta", command=lambda: open_second_window(3))
+button3.pack(pady=10)
 
-    ###################
-    ## OCR con EasyOCR
+# Ejecutar el bucle de la ventana principal
+root.mainloop()
 
-    # Convertir la imagen a escala de grises
-    img_gris = cv2.cvtColor(img_filtrada, cv2.COLOR_BGR2GRAY)
-
-    # Redimensionar y aplicar preprocesamiento
-    img_ocr = cv2.resize(img_gris, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
-    img_ocr = cv2.GaussianBlur(img_ocr, (3, 3), 0)
-    img_ocr = cv2.equalizeHist(img_ocr)
-
-    # Usar EasyOCR para realizar la lectura OCR en la imagen preprocesada
-    resultado = reader.readtext(img_ocr)
-
-    # Imprimir los resultados reconocidos con la hora actual
-    for res in resultado:
-        print(f'Texto reconocido: {res[1]} a las')
-        print(type(res[1]))
-        if res[1] == '51':
-            pyautogui.screenshot(f'./detecciones/s1{s1}.png')
-            s1 += 1
-        if res[1] == 'B1':
-            pyautogui.screenshot(f'./detecciones/b1{b1}.png')
-            b1 += 1
-    print(f'{now.time()}')
-    # Control para salir del bucle con la tecla 'q'
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-    # Pausa de 5 segundos antes de la siguiente iteración
-    time.sleep(300)
-    pyautogui.screenshot('ah.png')
-    img = cv2.imread('ah.png')
-
-cv2.destroyAllWindows()
+# Esperar a que termine el hilo de OCR
+ocr_thread.join()
