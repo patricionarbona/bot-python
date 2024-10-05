@@ -90,13 +90,28 @@ def ocr_processing_loop(roi_original, reader):
         #Long Abierto
         if fase == 1:
             print('LA')
+            pyautogui.screenshot(f'./detecciones/b1{b1}.png')
+            b1 += 1
+            fase = 2
+
         if fase == 2:
-            print('LC')
+            print('wait')
+            if res[1] == '51':
+                print('LC')
+                fase = 3
 
         #Short Abierto
         if fase == 3:
             print('SA')
+            pyautogui.screenshot(f'./detecciones/s1{s1}.png')
+            s1 += 1
+            fase = 4
+
         if fase == 4:
+            print('wait')
+            if res[1] == '51':
+                print('LC')
+                fase = 1
             print('SC')    
 
 
@@ -104,15 +119,15 @@ def ocr_processing_loop(roi_original, reader):
 
 
 
-        # Imprimir los resultados reconocidos con la hora actual
-        for res in resultado:
-            print(f'Texto reconocido: {res[1]} a las {now.time()}')
-            if res[1] == '51':
-                pyautogui.screenshot(f'./detecciones/s1{s1}.png')
-                s1 += 1
-            if res[1] == 'B1':
-                pyautogui.screenshot(f'./detecciones/b1{b1}.png')
-                b1 += 1
+        # # Imprimir los resultados reconocidos con la hora actual
+        # for res in resultado:
+        #     print(f'Texto reconocido: {res[1]} a las {now.time()}')
+        #     if res[1] == '51':
+        #         pyautogui.screenshot(f'./detecciones/s1{s1}.png')
+        #         s1 += 1
+        #     if res[1] == 'B1':
+        #         pyautogui.screenshot(f'./detecciones/b1{b1}.png')
+        #         b1 += 1
 
         print(f'{now.time()}')
         time.sleep(5)  # Pausa de 5 segundos antes de la siguiente iteración
