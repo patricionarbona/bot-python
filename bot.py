@@ -43,38 +43,45 @@ def open_second_window(value):
     second_window.mainloop()
 
 #Abrir opcion short o long
-def abrir_operacion(resultado):
-    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonAbrir.png', confidence=0.8)
+def abrir_operacion():
+    global roi_buttons
+    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonAbrir.png', confidence=0.8, region=roi_buttons)
     buttonDragCenter = pyautogui.center(buttonDrag)
     pyautogui.moveTo(buttonDragCenter.x, buttonDragCenter.y)
     pyautogui.click()
 
 #Mover Slide
-def drag_operacion(resultado):
-    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonDrag.png', confidence=0.8)
+def drag_operacion():
+    global roi_buttons
+    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonDrag.png', confidence=0.8, region=roi_buttons)
     buttonDragCenter = pyautogui.center(buttonDrag)
     pyautogui.moveTo(buttonDragCenter.x, buttonDragCenter.y)
     pyautogui.dragRel(1000, 0, duration=0.2)
     pyautogui.click()
-    time.sleep(1)
+    time.sleep(0.5)
 
 #Abrir short
-def abrir_short(resultado):
-    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonShort.png', confidence=0.8)
+def abrir_short():
+    global roi_buttons
+    drag_operacion()
+    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonShort.png', confidence=0.8, region=roi_buttons)
     buttonDragCenter = pyautogui.center(buttonDrag)
     pyautogui.moveTo(buttonDragCenter.x, buttonDragCenter.y)
     pyautogui.click()
 
 #Abrir long
-def abrir_long(resultado):
-    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonLong.png', confidence=0.8)
+def abrir_long():
+    global roi_buttons
+    drag_operacion()
+    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonLong.png', confidence=0.8 , region=roi_buttons)
     buttonDragCenter = pyautogui.center(buttonDrag)
     pyautogui.moveTo(buttonDragCenter.x, buttonDragCenter.y)
     pyautogui.click()
 
 #Cerrar operacion
-def cerrar_operacion(resultado):
-    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonCerrar.png', confidence=0.8)
+def cerrar_operacion():
+    global roi_buttons
+    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonCerrar.png', confidence=0.8, region=roi_buttons)
     buttonDragCenter = pyautogui.center(buttonDrag)
     pyautogui.moveTo(buttonDragCenter.x, buttonDragCenter.y)
     pyautogui.click()
@@ -96,6 +103,9 @@ def fase_long_abierto(resultado):
     print('Long Abierto - Capturando pantalla')
     pyautogui.screenshot(f'./detecciones/b1{b1}.png')
     b1 += 1
+    abrir_operacion()
+    time.sleep(0.1)
+    abrir_long()
     fase = 2  # Espera a la siguiente fase (esperar confirmación)
 
 # Fase 2: Espera confirmación Long Cerrado
@@ -104,6 +114,8 @@ def fase_espera_confirmacion_long(resultado):
     for res in resultado:
         if res[1] == '51':  # Si se reconoce "51", cerramos Long
             print('Confirmación - Long Cerrado')
+            cerrar_operacion()
+            time.sleep(0.1)
             fase = 3  # Cambio a fase Short
 
 # Fase 3: Short Abierto
@@ -112,6 +124,9 @@ def fase_short_abierto(resultado):
     print('Short Abierto - Capturando pantalla')
     pyautogui.screenshot(f'./detecciones/s1{s1}.png')
     s1 += 1
+    abrir_operacion()
+    time.sleep(0.1)
+    abrir_short()
     fase = 4  # Espera a la siguiente fase (esperar confirmación)
 
 # Fase 4: Espera confirmación Short Cerrado
@@ -120,6 +135,8 @@ def fase_espera_confirmacion_short(resultado):
     for res in resultado:
         if res[1] == 'B1':  # Si se reconoce "B1", abrimos de nuevo Long
             print('Confirmación - Short Cerrado')
+            cerrar_operacion()
+            time.sleep(0.1)
             fase = 1  # Cambio a fase Long
 
 def ocr_processing_loop(roi_original, reader):
@@ -197,6 +214,18 @@ scale_y = img.shape[0] / height
 
 roi_original = (int(roi[0] * scale_x), int(roi[1] * scale_y), int(roi[2] * scale_x), int(roi[3] * scale_y))
 
+#Selección de ROI de botones
+roi_buttons = cv2.selectROI('Selecciona el ROI de los botones', img_resized)
+cv2.destroyWindow('Selecciona el ROI de los botones')
+
+scale_x = img.shape[1] / width
+scale_y = img.shape[0] / height
+
+roi_buttons = (int(roi_buttons[0] * scale_x), int(roi_buttons[1] * scale_y), int(roi_buttons[2] * scale_x), int(roi_buttons[3] * scale_y))
+
+cv2.imshow('Roi buttons',roi_buttons)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 # Iniciar el hilo para el OCR
 ocr_thread = threading.Thread(target=ocr_processing_loop, args=(roi_original, reader))
 ocr_thread.start()
