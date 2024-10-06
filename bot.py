@@ -45,10 +45,14 @@ def open_second_window(value):
 #Abrir opcion short o long
 def abrir_operacion():
     global roi_buttons
+    # print('Abriendo operacion en la region', roi_buttons)
+    # time.sleep(2)
+    # pyautogui.screenshot('test.png',region=roi_buttons)
     buttonDrag = pyautogui.locateOnScreen('./muestras/buttonAbrir.png', confidence=0.8, region=roi_buttons)
     buttonDragCenter = pyautogui.center(buttonDrag)
     pyautogui.moveTo(buttonDragCenter.x, buttonDragCenter.y)
     pyautogui.click()
+    time.sleep(0.5)
 
 #Mover Slide
 def drag_operacion():
@@ -223,9 +227,6 @@ scale_y = img.shape[0] / height
 
 roi_buttons = (int(roi_buttons[0] * scale_x), int(roi_buttons[1] * scale_y), int(roi_buttons[2] * scale_x), int(roi_buttons[3] * scale_y))
 
-cv2.imshow('Roi buttons',roi_buttons)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
 # Iniciar el hilo para el OCR
 ocr_thread = threading.Thread(target=ocr_processing_loop, args=(roi_original, reader))
 ocr_thread.start()
@@ -238,10 +239,10 @@ root.title("Ventana principal")
 button1 = tk.Button(root, text="Sin operaciones", command=lambda: open_second_window(0))
 button1.pack(pady=10)
 
-button2 = tk.Button(root, text="Long Abierta", command=lambda: open_second_window(1))
+button2 = tk.Button(root, text="Long Abierta", command=lambda: open_second_window(2))
 button2.pack(pady=10)
 
-button3 = tk.Button(root, text="Short Abierta", command=lambda: open_second_window(3))
+button3 = tk.Button(root, text="Short Abierta", command=lambda: open_second_window(4))
 button3.pack(pady=10)
 
 # Ejecutar el bucle de la ventana principal
