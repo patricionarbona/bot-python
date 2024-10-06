@@ -42,6 +42,43 @@ def open_second_window(value):
     # Ejecutar el bucle de la segunda ventana
     second_window.mainloop()
 
+#Abrir opcion short o long
+def abrir_operacion(resultado):
+    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonAbrir.png', confidence=0.8)
+    buttonDragCenter = pyautogui.center(buttonDrag)
+    pyautogui.moveTo(buttonDragCenter.x, buttonDragCenter.y)
+    pyautogui.click()
+
+#Mover Slide
+def drag_operacion(resultado):
+    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonDrag.png', confidence=0.8)
+    buttonDragCenter = pyautogui.center(buttonDrag)
+    pyautogui.moveTo(buttonDragCenter.x, buttonDragCenter.y)
+    pyautogui.dragRel(1000, 0, duration=0.2)
+    pyautogui.click()
+    time.sleep(1)
+
+#Abrir short
+def abrir_short(resultado):
+    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonShort.png', confidence=0.8)
+    buttonDragCenter = pyautogui.center(buttonDrag)
+    pyautogui.moveTo(buttonDragCenter.x, buttonDragCenter.y)
+    pyautogui.click()
+
+#Abrir long
+def abrir_long(resultado):
+    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonLong.png', confidence=0.8)
+    buttonDragCenter = pyautogui.center(buttonDrag)
+    pyautogui.moveTo(buttonDragCenter.x, buttonDragCenter.y)
+    pyautogui.click()
+
+#Cerrar operacion
+def cerrar_operacion(resultado):
+    buttonDrag = pyautogui.locateOnScreen('./muestras/buttonCerrar.png', confidence=0.8)
+    buttonDragCenter = pyautogui.center(buttonDrag)
+    pyautogui.moveTo(buttonDragCenter.x, buttonDragCenter.y)
+    pyautogui.click()
+
 # Fase 0: Sin Operaciones
 def fase_sin_operaciones(resultado):
     global fase
