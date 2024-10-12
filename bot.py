@@ -20,6 +20,18 @@ def stop_program():
     global stop_requested
     stop_requested = True  # Cuando se pulse STOP, cambia a True
 
+def cambio_short():
+    global fase
+    fase = 4
+
+def cambio_long():
+    global fase
+    fase = 2
+
+def no_operacion():
+    global fase
+    fase = 0
+
 def open_second_window(value):
     global fase
     fase = value
@@ -38,6 +50,12 @@ def open_second_window(value):
     # Crear el botón STOP en la segunda ventana
     stop_button = tk.Button(second_window, text="STOP", command=stop_program)
     stop_button.pack(pady=20)
+    short_button = tk.Button(second_window, text="Short abierta", command=cambio_short)
+    short_button.pack(pady=20)
+    long_button = tk.Button(second_window, text="Long abierta", command=cambio_long)
+    long_button.pack(pady=20)
+    no_button = tk.Button(second_window, text="No hay operacion", command=no_operacion)
+    no_button.pack(pady=20)
 
     # Ejecutar el bucle de la segunda ventana
     second_window.mainloop()
@@ -60,7 +78,7 @@ def drag_operacion():
     buttonDrag = pyautogui.locateOnScreen('./muestras/buttonDrag.png', confidence=0.8, region=roi_buttons)
     buttonDragCenter = pyautogui.center(buttonDrag)
     pyautogui.moveTo(buttonDragCenter.x, buttonDragCenter.y)
-    pyautogui.dragRel(1000, 0, duration=0.2)
+    pyautogui.dragRel(1200, 0, duration=0.2)
     pyautogui.click()
     time.sleep(0.5)
 
@@ -71,6 +89,7 @@ def abrir_short():
     buttonDrag = pyautogui.locateOnScreen('./muestras/buttonShort.png', confidence=0.8, region=roi_buttons)
     buttonDragCenter = pyautogui.center(buttonDrag)
     pyautogui.moveTo(buttonDragCenter.x, buttonDragCenter.y)
+    time.sleep(1)
     pyautogui.click()
 
 #Abrir long
@@ -80,6 +99,7 @@ def abrir_long():
     buttonDrag = pyautogui.locateOnScreen('./muestras/buttonLong.png', confidence=0.8 , region=roi_buttons)
     buttonDragCenter = pyautogui.center(buttonDrag)
     pyautogui.moveTo(buttonDragCenter.x, buttonDragCenter.y)
+    time.sleep(1)
     pyautogui.click()
 
 #Cerrar operacion
