@@ -13,8 +13,37 @@ COLOR_MASKS = [
 ]
 b1 = 0
 s1 = 0
-fase = 0
+fase = -1
 stop_requested = False  # Variable global para detener el bucle
+val_mode = "numbers"
+val_max = 1000
+val_min = 20
+
+def submit_percentage():
+    global val_max, val_min, val_mode
+    val_max = entry_max.get()
+    val_min = entry_min.get()
+    val_mode = "percent"
+
+def submit_numbers():
+    global val_max, val_min, val_mode
+    val_max = entry_max.get()
+    val_min = entry_min.get()
+    val_mode = "numbers"
+
+def start_window():
+    print(f'Max: {val_max}, Min: {val_min}, mode: {val_mode}')
+    new_window = tk.Toplevel()
+    new_window.title("Nueva Ventana")
+
+    button1 = tk.Button(new_window, text="Sin operaciones", command=lambda: open_second_window(0))
+    button1.pack(pady=10)
+
+    button2 = tk.Button(new_window, text="Long Abierta", command=lambda: open_second_window(2))
+    button2.pack(pady=10)
+
+    button3 = tk.Button(new_window, text="Short Abierta", command=lambda: open_second_window(4))
+    button3.pack(pady=10)
 
 def stop_program():
     global stop_requested
@@ -48,7 +77,7 @@ def open_second_window(value):
     print(f"Valor seleccionado: {value}")
     
     # Crear el botón STOP en la segunda ventana
-    stop_button = tk.Button(second_window, text="STOP", command=stop_program)
+    stop_button = tk.Button(second_window, text="STOP", command=lambda: (stop_program(),second_window.destroy()))
     stop_button.pack(pady=20)
     short_button = tk.Button(second_window, text="Short abierta", command=cambio_short)
     short_button.pack(pady=20)
@@ -255,15 +284,26 @@ ocr_thread.start()
 root = tk.Tk()
 root.title("Ventana principal")
 
-# Crear los tres botones en la ventana principal, cada uno con un valor distinto
-button1 = tk.Button(root, text="Sin operaciones", command=lambda: open_second_window(0))
-button1.pack(pady=10)
+root.title("Ventana principal")
 
-button2 = tk.Button(root, text="Long Abierta", command=lambda: open_second_window(2))
-button2.pack(pady=10)
+label_max = tk.Label(root, text="Valor máximo:")
+label_max.pack(pady=5)
+entry_max = tk.Entry(root)
+entry_max.pack(pady=5)
 
-button3 = tk.Button(root, text="Short Abierta", command=lambda: open_second_window(4))
-button3.pack(pady=10)
+# Campo para el valor mínimo
+label_min = tk.Label(root, text="Valor mínimo:")
+label_min.pack(pady=5)
+entry_min = tk.Entry(root)
+entry_min.pack(pady=5)
+
+# Botón para porcentaje
+button_percentage = tk.Button(root, text="Porcentaje", command=lambda: (submit_percentage(), root.withdraw(),start_window()))
+button_percentage.pack(pady=10)
+
+# Botón para números
+button_numbers = tk.Button(root, text="Números", command=lambda: (submit_numbers(), root.withdraw(), start_window()))
+button_numbers.pack(pady=10)
 
 # Ejecutar el bucle de la ventana principal
 root.mainloop()
