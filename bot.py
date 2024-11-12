@@ -24,13 +24,13 @@ reader = easyocr.Reader(['es'])
 def submit_percentage():
     global val_max, val_min, val_mode
     val_max = float(entry_max.get())
-    val_min = float(entry_min.get())
+    val_min = float(entry_min.get().replace('-','')) * -1
     val_mode = "percent"
 
 def submit_numbers():
     global val_max, val_min, val_mode
     val_max = float(entry_max.get())
-    val_min = float(entry_min.get()) * -1
+    val_min = float(entry_min.get().replace('-','')) * -1
     val_mode = "numbers"
 
 def start_window():
@@ -143,14 +143,25 @@ def cerrar_operacion():
 
 def control_increment(prev, next, op_open):
     global fase
-    print(f'Prev: {prev}, Next: {next}')
+    print(f'inicio next: {next} {type(next)}')
+    if len(next) > 5 and next.find('.') == -1:
+        next = next[:-4] + '.' + next[-4:]
+    print(f'Prev: {prev}, Next: {next}, Val_min: {val_min}, Val_max: {val_max}')
     next = float(next)
+    print(f'Final  next: {next} {type(next)}')
+
     if(next <= val_min):
-        print('corta operacion bajo')
+        print(f'corta operacion bajo. prev: {prev}, next: {next}')
         cerrar_operacion()
         time.sleep(0.1)
         fase = 0
-    elif(next >= val_max and (next - prev) < -2):
+    elif(next >= val_max and (next - prev) < (1) and prev != -1000 and val_mode != "percent"):
+        cerrar_operacion()
+        time.sleep(0.1)
+
+        fase = 0
+        return -1000
+    elif(next >= val_max and (next - prev) < 1 and prev != -1000):
         cerrar_operacion()
         time.sleep(0.1)
 
@@ -284,7 +295,11 @@ def fase_long_abierto(resultado):
 def fase_espera_confirmacion_long(resultado):
     global fase
     detec_value("long")
+    print(f'texto leido?:')
+
     for res in resultado:
+        print(f'texto leido: {res}')
+
         if res[1] == '51':  # Si se reconoce "51", cerramos Long
             print('Confirmación - Long Cerrado')
             cerrar_operacion()
@@ -306,7 +321,10 @@ def fase_short_abierto(resultado):
 def fase_espera_confirmacion_short(resultado):
     global fase
     detec_value("short")
+    print(f'texto leido?:')
+
     for res in resultado:
+        print(f'texto leido: {res}')
         if res[1] == 'B1':  # Si se reconoce "B1", abrimos de nuevo Long
             print('Confirmación - Short Cerrado')
             cerrar_operacion()
