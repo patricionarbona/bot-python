@@ -45,16 +45,36 @@ if buttonDrag is not None:
     # Convierte la imagen a formato OpenCV
     screenshot_cv = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
 
+    # Analiza el color en la región donde se espera el texto
+    # Define un rango para los colores
+    lower_red = np.array([0, 0, 100])
+    upper_red = np.array([50, 50, 255])
+    lower_green = np.array([0, 100, 0])
+    upper_green = np.array([50, 255, 50])
+
+    mask_red = cv2.inRange(screenshot_cv, lower_red, upper_red)
+    mask_green = cv2.inRange(screenshot_cv, lower_green, upper_green)
+
+    red_count = cv2.countNonZero(mask_red)
+    green_count = cv2.countNonZero(mask_green)
+
+    # Determina si el número es negativo o positivo
+    if red_count > green_count:
+        print("El número es negativo")
+    elif green_count > red_count:
+        print("El número es positivo")
+    else:
+        print("No se pudo determinar el signo del número")
+
+    # Usa EasyOCR para leer el texto
     reader = easyocr.Reader(['es']) 
     result = reader.readtext(screenshot_cv)
 
     # Imprime los resultados
     for (bbox, text, prob) in result:
         print(f'Texto: {text} (Confianza: {prob:.2f})')
-        print(text.split()[0]) #value
-        print(text.split('(')[1].replace(')',''))# percent
-
-
+        if '(' in text:
+            print(text.split('(')[1].replace(')',''))  # porcentaje
 
     # Muestra la imagen usando OpenCV
     cv2.imshow('Captura', screenshot_cv)
